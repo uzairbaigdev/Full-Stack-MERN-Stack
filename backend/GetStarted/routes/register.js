@@ -48,13 +48,14 @@ registerRoute.post('/', async (req, res) => {
     const UID = Math.floor(Math.random() * 1000000);
     const passwordSalt = randomBytes(16).toString('hex');
     const passwordHash = await scrypt(password, passwordSalt, 64);
+    const createdAt = new Date();
     const result = await db.collection('users').insertOne({
       username,
       email,
       password: passwordHash.toString('hex'),
       passwordSalt,
       UID,
-      createdAt: new Date()
+      createdAt,
     });
 
     const token = jwt.sign(
@@ -66,7 +67,14 @@ registerRoute.post('/', async (req, res) => {
     return res.status(201).json({
       message: 'User created successfully',
       code: 201,
-      token
+      token,
+      user: {
+        id: result.insertedId.toString(),
+        username,
+        email,
+        UID,
+        createdAt,
+      },
     });
   } catch (error) {
     console.error(error);

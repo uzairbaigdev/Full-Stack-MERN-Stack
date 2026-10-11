@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import axios from 'axios';
+import useAuthStore from '../../zustand/authStore.js';
 
 const Register = () => {
+  const setUser = useAuthStore((state) => state.setUser);
   const [form, setForm] = useState({
     username: '',
     email: '',
@@ -24,13 +26,32 @@ const Register = () => {
     try {
       const registrationUrl = import.meta.env.VITE_BACKEND_URL.replace(/\/+$/, '');
       const response = await axios.post(registrationUrl, form);
+      const token = response.data.token;
+      const user = response.data.user;
+
+      if (token) {
+        const cookieAttributes = [
+          'Path=/',
+          'Max-Age=3600',
+          'SameSite=Lax',
+          ...(import.meta.env.PROD ? ['Secure'] : []),
+        ];
+
+        document.cookie = [
+          `token=${encodeURIComponent(token)}`,
+          ...cookieAttributes,
+        ].join('; ');
+      }
+
+      setUser(user);
+      console.log('Registered user:', user);
       setMessage(response.data.message);
       setForm({ username: '', email: '', password: '' });
     } catch (error) {
       const backendErrors = error.response?.data?.errors;
       setErrors(
         backendErrors?.map(({ field, message }) => `${field}: ${message}`) ??
-          [error.response?.data?.message ?? 'Could not connect to the server.'],
+        [error.response?.data?.message ?? 'Could not connect to the server.'],
       );
     } finally {
       setSubmitting(false);
