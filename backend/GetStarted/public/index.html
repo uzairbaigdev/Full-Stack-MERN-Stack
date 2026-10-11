@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Users</title>
+  </head>
+  <body>
+    <h1>Users</h1>
+    <ul id="users-list"></ul>
+
+    <script>
+      async function loadUsers() {
+        const res = await fetch('http://localhost:3000/users');
+        const data = await res.json();
+        const list = document.getElementById('users-list');
+
+        list.innerHTML = '';
+
+        if (!data.data || data.data.length === 0) {
+          list.innerHTML = '<li>No users found</li>';
+          return;
+        }
+
+        data.data.forEach((user) => {
+          const li = document.createElement('li');
+          li.textContent = `${user.username} - ${user.email}`;
+          list.appendChild(li);
+        });
+      }
+
+      loadUsers();
+    </script>
+  </body>
+</html>

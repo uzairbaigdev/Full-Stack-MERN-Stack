@@ -1,0 +1,28 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/uzairbaigdev/Backend-Practice#readme",
+  "bugs": {
+    "url": "https://github.com/uzairbaigdev/Backend-Practice/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uzairbaigdev/Backend-Practice.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.1",
+    "express": "^5.2.1",
+    "joi": "^18.2.9",
+    "jsonwebtoken": "^9.0.3",
+    "mongodb": "^7.6.0"
+  }
+}

@@ -1,0 +1,17 @@
+meta {
+  name: Create User
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:3000/users
+  body: json
+  auth: none
+}
+
+body:json {
+  "email": "hamza@gmail.com",
+  "username": "hamza",
+  "password": "SecurePass1!"
+}
