@@ -85,4 +85,68 @@ registerRoute.post('/', async (req, res) => {
   }
 });
 
+// Get the account associated with a registration token.
+registerRoute.get('/', async (req, res) => {
+  const { token } = req.query;
+
+  if (typeof token !== 'string' || !token.trim()) {
+    return res.status(400).json({
+      message: 'A token is required',
+      code: 400,
+    });
+  }
+
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    return res.status(500).json({
+      message: 'JWT verification secret is not configured',
+      code: 500,
+    });
+  }
+
+  try {
+    const decodedToken = jwt.verify(token, jwtSecret);
+
+    if (
+      typeof decodedToken !== 'object' ||
+      decodedToken === null ||
+      typeof decodedToken.email !== 'string'
+    ) {
+      return res.status(401).json({
+        message: 'Invalid token',
+        code: 401,
+      });
+    }
+
+    const user = await getDatabase().collection('users').findOne({
+      email: decodedToken.email,
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        message: 'No account exists for this token',
+        code: 404,
+      });
+    }
+
+    return res.status(200).json({
+      message: 'Account retrieved successfully',
+      code: 200,
+      user: {
+        id: user._id.toString(),
+        username: user.username,
+        email: user.email,
+        UID: user.UID,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to fetch account:', error);
+    return res.status(500).json({
+      message: 'Failed to fetch account',
+      code: 500,
+    });
+  }
+});
+
 export default registerRoute;
