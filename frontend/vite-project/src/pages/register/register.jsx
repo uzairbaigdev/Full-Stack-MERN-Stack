@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import useAuthStore from '../../zustand/authStore.js';
+import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
   const setUser = useAuthStore((state) => state.setUser);
@@ -12,6 +13,7 @@ const Register = () => {
   const [errors, setErrors] = useState([]);
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -43,8 +45,8 @@ const Register = () => {
         ].join('; ');
       }
 
-      setUser(user);
-      console.log('Registered user:', user);
+      setUser(user ?? { username: form.username, email: form.email });
+      navigate('/dashboard');
       setMessage(response.data.message);
       setForm({ username: '', email: '', password: '' });
     } catch (error) {

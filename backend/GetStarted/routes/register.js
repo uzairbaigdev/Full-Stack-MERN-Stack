@@ -67,14 +67,7 @@ registerRoute.post('/', async (req, res) => {
     return res.status(201).json({
       message: 'User created successfully',
       code: 201,
-      token,
-      user: {
-        id: result.insertedId.toString(),
-        username,
-        email,
-        UID,
-        createdAt,
-      },
+      token
     });
   } catch (error) {
     console.error(error);

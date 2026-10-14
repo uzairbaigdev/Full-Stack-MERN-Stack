@@ -25,6 +25,9 @@ const useAuthStore = create((set) => ({
   clearUser: () => set({ user: null }),
 }));
 
+console.log(useAuthStore.getState().user);
+useAuthStore.subscribe((state) => console.log(state.user));
+
 if (token) {
   getUserFromToken()
     .then((user) => {

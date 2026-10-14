@@ -1,4 +1,5 @@
 import express from 'express';
+import jwt from 'jsonwebtoken';
 import { scrypt as scryptCallback, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 import { getDatabase } from '../config/database.js';
@@ -37,14 +38,33 @@ loginRoute.post('/', async (req, res) => {
             !timingSafeEqual(storedPasswordHash, enteredPasswordHash)
         ) {
             return res.status(401).json({
-                message: 'Invalid password',
+                message: 'Invalid email or password',
                 code: 401,
             });
-    }
+        }
+
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret) {
+            return res.status(500).json({
+                message: 'JWT signing secret is not configured',
+                code: 500,
+            });
+        }
+
+        const token = jwt.sign(
+            {
+                username: user.username,
+                email: user.email,
+                UID: user.UID,
+            },
+            jwtSecret,
+            { subject: user._id.toString(), expiresIn: '1h' },
+        );
 
         return res.status(200).json({
             message: 'Login successful',
             code: 200,
+            token,
         });
     } catch (error) {
         console.error('Login failed:', error);
