@@ -1,25 +1,47 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import useAuthStore from '../../zustand/authStore.js';
 
 const Login = () => {
+  const setUser = useAuthStore((state) => state.setUser);
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const handleLogin = async (event) => {
     event.preventDefault();
     setMessage('');
+    setSubmitting(true);
 
     try {
-      const response = await axios.post(import.meta.env.VITE_LOGIN_API_URL, {
-        email,
-        password,
-      });
-      setMessage(response.data.message);
+      const response = await axios.post('/login', { email, password });
+      const token = response.data.token;
+
+      if (token) {
+        const cookieAttributes = [
+          'Path=/',
+          'Max-Age=3600',
+          'SameSite=Lax',
+          ...(import.meta.env.PROD ? ['Secure'] : []),
+        ];
+
+        document.cookie = [
+          `token=${encodeURIComponent(token)}`,
+          ...cookieAttributes,
+        ].join('; ');
+      }
+
+      setUser(response.data.user ?? { email });
+      navigate('/dashboard');
     } catch (error) {
       setMessage(
         error.response?.data?.message ?? 'Could not connect to the server.',
       );
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -53,8 +75,10 @@ const Login = () => {
                 autoComplete="email"
                 placeholder="Email"
                 value={email}
+                required
+                disabled={submitting}
                 onChange={(event) => setEmail(event.target.value)}
-                className={inputClasses}
+                className={`${inputClasses} disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500`}
               />
             </div>
 
@@ -69,15 +93,17 @@ const Login = () => {
                 autoComplete="current-password"
                 placeholder="Password"
                 value={password}
+                required
+                disabled={submitting}
                 onChange={(event) => setPassword(event.target.value)}
-                className={inputClasses}
+                className={`${inputClasses} disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500`}
               />
             </div>
 
             {message && (
               <div
-                role="status"
-                className="rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-medium text-indigo-800"
+                role="alert"
+                className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
               >
                 {message}
               </div>
@@ -85,9 +111,10 @@ const Login = () => {
 
             <button
               type="submit"
-              className="flex w-full items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600/30"
+              disabled={submitting}
+              className="flex w-full items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600/30 disabled:cursor-not-allowed disabled:bg-indigo-400"
             >
-              Login
+              {submitting ? 'Logging in...' : 'Login'}
             </button>
           </form>
         </div>
